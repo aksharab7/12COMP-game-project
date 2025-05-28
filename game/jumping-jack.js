@@ -19,7 +19,6 @@ var lastY;
 let seconds = TIMELIMIT;
 let timer;
 let score = 0;
-let gameActive = true;
 
 /*******************************************************/
 // preload() 
@@ -39,7 +38,7 @@ function preload() {
 function setup() {
   console.log("setup:");
   createCanvas(windowWidth, windowHeight - 5);
-  world.gravity.y = 19;
+  world.gravity.y = 20;
 
   createJack();             
   createPlatforms();   
@@ -52,7 +51,6 @@ function setup() {
   timer = setInterval(timerFunc, 1000); // Start countdown timer
 }
 
-/*******************************************************/
 // draw() 
 // Main game loop
 /*******************************************************/
@@ -64,7 +62,6 @@ function draw() {
   }
   drawScore();
   camera.y = jack.y; // Camera follows Jack vertically
-
 }
 
 /*******************************************************/
@@ -98,11 +95,15 @@ function moveJack() {
   } else if (kb.pressing("right")) {
     jack.x += 5;
     jack.img = jackRightImg;
+    jackRightImg.resize(100, 120);
+    jack.image.offset.y = -10;
+    jack.image.offset.x = 4;
   }
 
-  if (kb.pressing("space")) {
-    jack.vel.y -= 0.5;
-  }
+  if (kb.presses("space")) {
+      jack.vel.y = -10;
+    }
+  
 }
 
 /*******************************************************/
@@ -113,10 +114,9 @@ function moveJack() {
 function createPlatforms() {
   platformGroup = new Group();
 
-  for (let i = 0; i < 50; i++) {
-    let platformWidth = random(50, 120);
+  for (let i = 0; i < 100; i++) {
     let posX = random(100, width - 100);
-    let posY = jack.y - i * 80;
+    let posY = jack.y - i * 90;
 
     let platform = new Sprite(posX, posY, PLATFORMWIDTH, PLATFORMHEIGHT, "s");
     platform.img = platformImg;
@@ -134,12 +134,13 @@ function createPlatforms() {
 // Called by draw()
 /*******************************************************/
 function updateScore() {
- if (jack.y < lastY && jack.colliding(platformGroup)) {
+  if (jack.vel.y < -1) {
+    // Jack is going upward
     score++;
-  } else if (jack.y > lastY && jack.colliding(platformGroup)) {
+  } else if (jack.vel.y > 1) {
+    // Jack is falling
     score = max(0, score - 1);
   }
-  lastY = jack.y;
 }
 
 /*******************************************************/
@@ -149,11 +150,10 @@ function updateScore() {
 /*******************************************************/
 function timerFunc() {
   seconds--;
-  P_TIME_OBJ.textContent = seconds;
-
-  if (seconds <= 0) {
-   gameActive = false;
-   clearInterval(timer);
+ 
+ if (seconds <= 0) {
+    gameOver();
+    clearInterval(timer);
   }
 }
 
@@ -171,13 +171,6 @@ function drawScore() {
   text("Score: " + score, 20, 20);
   text("Time: " + seconds + "s", 20, 50);
 
-   if (gameActive == false) {
-    textSize(32);
-    textAlign(CENTER, CENTER);
-    text("Game Over!", width / 2, height / 2 - 40);
-    text("Final Score: " + score, width / 2, height / 2 + 20);
-  }
-
   camera.on();
 }
 
@@ -187,15 +180,15 @@ function drawScore() {
 // called by timerFunc()
 /*******************************************************/
 function gameOver() {
+  noLoop(); 
   clearInterval(timer);
+   
+  sessionStorage.setItem("score", score);
 
-  camera.off();
-  fill(255);
-  textSize(32);
-  textAlign(CENTER, CENTER);
-  text("Game Over!", width / 2, height / 2 - 40);
-  text("Final Score: " + score, width / 2, height / 2 + 20);
-  camera.on();
+  const highScore = sessionStorage.getItem("highScore");
+  if (score > highScore) {
+    sessionStorage.setItem("highScore", score);
+  }
 
-  noLoop(); // Stop draw() loop
+ window.location.href = "jj_end.html"; 
 }
