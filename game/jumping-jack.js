@@ -51,15 +51,14 @@ function setup() {
   timer = setInterval(timerFunc, 1000); // Start countdown timer
 }
 
+/*******************************************************/
 // draw() 
 // Main game loop
 /*******************************************************/
 function draw() {
   clear();
-   if (gameActive) {
-    moveJack();
-    updateScore();
-  }
+  moveJack();
+  updateScore();
   drawScore();
   camera.y = jack.y; // Camera follows Jack vertically
 }
